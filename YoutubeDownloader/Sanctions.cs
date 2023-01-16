@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Globalization;
-using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Windows;
+using Microsoft.Win32;
 
 namespace YoutubeDownloader;
 
@@ -20,19 +20,17 @@ public static class Sanctions
         if (isSkipped)
             return;
 
-        var isSanctioned = new[]
-        {
-            CultureInfo.CurrentCulture,
-            CultureInfo.CurrentUICulture,
-            CultureInfo.InstalledUICulture,
-            CultureInfo.DefaultThreadCurrentCulture,
-            CultureInfo.DefaultThreadCurrentUICulture
-        }.Any(c =>
-            c is not null && (
-                c.Name.Contains("-ru", StringComparison.OrdinalIgnoreCase) ||
-                c.Name.Contains("-by", StringComparison.OrdinalIgnoreCase)
-            )
-        );
+        var locale = CultureInfo.CurrentCulture.Name;
+
+        var region = Registry.CurrentUser
+            .OpenSubKey(@"Control Panel\International\Geo", false)?
+            .GetValue("Name") as string;
+
+        var isSanctioned =
+            locale.EndsWith("-ru", StringComparison.OrdinalIgnoreCase) ||
+            locale.EndsWith("-by", StringComparison.OrdinalIgnoreCase) ||
+            string.Equals(region, "ru", StringComparison.OrdinalIgnoreCase) ||
+            string.Equals(region, "by", StringComparison.OrdinalIgnoreCase);
 
         if (!isSanctioned)
             return;
