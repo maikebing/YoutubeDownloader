@@ -14,11 +14,7 @@ public class MediaTagInjector
 {
     private readonly MusicBrainzClient _musicBrainz = new();
     private HttpClient client=new ();
-    public void Reset()
-    {
-        client =  Http.Client;
-        _musicBrainz.Reset();
-    }
+
     private void InjectMiscMetadata(MediaFile mediaFile, IVideo video)
     {
         var description = (video as Video)?.Description;

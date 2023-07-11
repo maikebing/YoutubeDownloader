@@ -5,15 +5,14 @@ using System.Threading.Tasks;
 using Onova;
 using Onova.Exceptions;
 using Onova.Services;
-using YoutubeDownloader.Core.Downloading;
-using static System.Net.WebRequestMethods;
+using YoutubeDownloader.Core.Utils;
 
 namespace YoutubeDownloader.Services;
 
 public class UpdateService : IDisposable
 {
     private IUpdateManager _updateManager = new UpdateManager(
-new GithubPackageResolver("Tyrrrz", "YoutubeDownloader", "YoutubeDownloader.zip"),
+new GithubPackageResolver(Http.Client,"Tyrrrz", "YoutubeDownloader", "YoutubeDownloader.zip"),
 new ZipPackageExtractor()
 );
 
@@ -26,16 +25,8 @@ new ZipPackageExtractor()
     public UpdateService(SettingsService settingsService)
     {
         _settingsService = settingsService;
+    }
 
-    }
-    public void Reset()
-    {
-        var client = Proxy.Apply(_settingsService.UseProxy, _settingsService.ProxyAddress);
-        _updateManager = new UpdateManager(
-                                new GithubPackageResolver(client, "Tyrrrz", "YoutubeDownloader", "YoutubeDownloader.zip"),
-                                new ZipPackageExtractor()
-                            );
-    }
     public async Task<Version?> CheckForUpdatesAsync()
     {
         if (!_settingsService.IsAutoUpdateEnabled)

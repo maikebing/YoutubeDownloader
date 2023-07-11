@@ -66,7 +66,6 @@ public class RootViewModel : Screen
     {
         try
         {
-            _updateService.Reset();
             var updateVersion = await _updateService.CheckForUpdatesAsync();
             if (updateVersion is null)
                 return;
@@ -92,7 +91,6 @@ public class RootViewModel : Screen
 
     public async void OnViewFullyLoaded()
     {
-        Proxy.Apply(_settingsService.UseProxy, _settingsService.ProxyAddress);
         await ShowUkraineSupportMessageAsync();
         await CheckForUpdatesAsync();
     }
@@ -102,7 +100,7 @@ public class RootViewModel : Screen
         base.OnViewLoaded();
 
         _settingsService.Load();
-      
+        Core.Utils.Http.Client = YoutubeDownloader.Core.Utils.Http.CreateClient(  _settingsService.UseProxy, _settingsService.ProxyAddress);
         // Sync the theme with settings
         if (_settingsService.IsDarkModeEnabled)
         {

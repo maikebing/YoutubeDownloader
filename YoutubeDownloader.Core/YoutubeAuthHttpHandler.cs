@@ -8,27 +8,29 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using YoutubeDownloader.Core.Utils.Extensions;
-
+using YoutubeDownloader.Core.Utils;
 namespace YoutubeDownloader.Core;
 
 public partial class YoutubeAuthHttpHandler : DelegatingHandler
 {
     private readonly CookieContainer _cookieContainer = new();
 
-    public YoutubeAuthHttpHandler(IReadOnlyDictionary<string, string> cookies)
+    public YoutubeAuthHttpHandler(IReadOnlyDictionary<string, string> cookies, bool useProxy, string proxyAddress)
     {
         foreach (var (key, value) in cookies)
             _cookieContainer.Add(YoutubeDomainUri, new Cookie(key, value));
 
-        InnerHandler = new SocketsHttpHandler
+        var hander = new SocketsHttpHandler
         {
             UseCookies = true,
             // Need to use a cookie container because YouTube sets additional cookies
             // even after the initial authentication.
-            CookieContainer = _cookieContainer
-        };
-    }
+            CookieContainer = _cookieContainer,
 
+        };
+        hander.WithProxy(useProxy, proxyAddress);
+        InnerHandler = hander;
+    }
     protected override async Task<HttpResponseMessage> SendAsync(
         HttpRequestMessage request,
         CancellationToken cancellationToken)

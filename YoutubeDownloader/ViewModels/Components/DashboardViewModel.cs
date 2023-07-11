@@ -66,19 +66,11 @@ public class DashboardViewModel : PropertyChangedBase, IDisposable
             o => o.Count,
             (_, _) => NotifyOfPropertyChange(() => IsDownloadsAvailable)
         );
-        Reset();
     }
 
-    private void Reset()
-    {
-        Proxy.Apply(_settingsService.UseProxy, _settingsService.ProxyAddress);
-        _videoDownloader.Reset();
-        _queryResolver.Reset();
-        _mediaTagInjector.Reset();
-    }
 
     private HttpClient CreateHttpClient() => Http.CreateClient(
-        new YoutubeAuthHttpHandler(_settingsService.LastAuthCookies ?? new Dictionary<string, string>())
+        new YoutubeAuthHttpHandler(_settingsService.LastAuthCookies ?? new Dictionary<string, string>(),_settingsService.UseProxy,_settingsService.ProxyAddress)
     );
 
     public bool CanShowAuthSetup => !IsBusy;
@@ -95,7 +87,6 @@ public class DashboardViewModel : PropertyChangedBase, IDisposable
         _viewModelFactory.CreateSettingsViewModel()
     );
    
-        Reset();
     }
 
     private void EnqueueDownload(DownloadViewModel download, int position = 0)

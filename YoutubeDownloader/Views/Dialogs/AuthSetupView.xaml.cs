@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Linq;
 using System.Net;
+using System.Threading.Tasks;
 using System.Windows;
 using Microsoft.Web.WebView2.Core;
 using YoutubeDownloader.ViewModels.Dialogs;
@@ -18,6 +19,7 @@ public partial class AuthSetupView
     public AuthSetupView()
     {
         InitializeComponent();
+     
     }
 
     private void NavigateToLoginPage() => WebBrowser.Source = new Uri(LoginPageUrl);
@@ -25,12 +27,23 @@ public partial class AuthSetupView
     private void LogoutHyperlink_OnClick(object sender, RoutedEventArgs args)
     {
         ViewModel.Cookies = null;
+     
         NavigateToLoginPage();
     }
 
-    private void WebBrowser_OnLoaded(object sender, RoutedEventArgs args) => NavigateToLoginPage();
+    private  void WebBrowser_OnLoaded(object sender, RoutedEventArgs args)
+    {
+        //if (ViewModel.UseProxy)
+        //{
+        //    CoreWebView2EnvironmentOptions Options = new CoreWebView2EnvironmentOptions();
+        //    Options.AdditionalBrowserArguments = $"--proxy-server={ViewModel.ProxyAddress}";
+        //    CoreWebView2Environment env =  CoreWebView2Environment.CreateAsync(null, null, Options).GetAwaiter().GetResult();
+        //     WebBrowser.EnsureCoreWebView2Async(env);
+        //}
+        NavigateToLoginPage();
+    }
 
-    private void WebBrowser_OnCoreWebView2InitializationCompleted(
+    private   void WebBrowser_OnCoreWebView2InitializationCompleted(
         object? sender,
         CoreWebView2InitializationCompletedEventArgs args)
     {
@@ -43,6 +56,7 @@ public partial class AuthSetupView
         WebBrowser.CoreWebView2.Settings.IsPasswordAutosaveEnabled = false;
         WebBrowser.CoreWebView2.Settings.IsStatusBarEnabled = false;
         WebBrowser.CoreWebView2.Settings.IsSwipeNavigationEnabled = false;
+      
     }
 
     private void WebBrowser_OnNavigationStarting(object? sender, CoreWebView2NavigationStartingEventArgs args)

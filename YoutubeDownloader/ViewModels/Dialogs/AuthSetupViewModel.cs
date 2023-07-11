@@ -17,9 +17,12 @@ public class AuthSetupViewModel : DialogScreen
     }
 
     public bool IsAuthenticated => Cookies?.Any() == true;
+    public bool UseProxy => _settingsService.UseProxy;
+    public string ProxyAddress => _settingsService.ProxyAddress;
 
     public AuthSetupViewModel(SettingsService settingsService)
     {
+ 
         _settingsService = settingsService;
 
         _settingsService.BindAndInvoke(

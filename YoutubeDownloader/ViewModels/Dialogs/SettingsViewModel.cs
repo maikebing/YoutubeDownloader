@@ -60,12 +60,10 @@ public class SettingsViewModel : DialogScreen
         get => _settingsService.UseProxy;
         set => _settingsService.UseProxy = value;
     }
-    
+
+
     public SettingsViewModel(SettingsService settingsService)
     {
         _settingsService = settingsService;
     }
-}
-    public SettingsViewModel(SettingsService settingsService) =>
-        _settingsService = settingsService;
 }
