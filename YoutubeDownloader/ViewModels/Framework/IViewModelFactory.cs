@@ -16,5 +16,7 @@ public interface IViewModelFactory
 
     MessageBoxViewModel CreateMessageBoxViewModel();
 
+    AuthSetupViewModel CreateAuthSetupViewModel();
+
     SettingsViewModel CreateSettingsViewModel();
 }

@@ -25,13 +25,15 @@ public static class MessageBoxViewModelExtensions
 {
     public static MessageBoxViewModel CreateMessageBoxViewModel(
         this IViewModelFactory factory,
-        string title, string message,
-        string? okButtonText, string? cancelButtonText)
+        string title,
+        string message,
+        string? okButtonText,
+        string? cancelButtonText)
     {
         var viewModel = factory.CreateMessageBoxViewModel();
+
         viewModel.Title = title;
         viewModel.Message = message;
-
         viewModel.IsOkButtonVisible = !string.IsNullOrWhiteSpace(okButtonText);
         viewModel.OkButtonText = okButtonText;
         viewModel.IsCancelButtonVisible = !string.IsNullOrWhiteSpace(cancelButtonText);
@@ -42,6 +44,7 @@ public static class MessageBoxViewModelExtensions
 
     public static MessageBoxViewModel CreateMessageBoxViewModel(
         this IViewModelFactory factory,
-        string title, string message) =>
+        string title,
+        string message) =>
         factory.CreateMessageBoxViewModel(title, message, "CLOSE", null);
 }

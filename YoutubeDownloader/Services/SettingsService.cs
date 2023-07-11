@@ -1,17 +1,27 @@
-﻿using Microsoft.Win32;
-using Tyrrrz.Settings;
+﻿using System;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.IO;
+using System.Text.Json;
+using System.Text.Json.Serialization;
+using Cogwheel;
+using Microsoft.Win32;
+using PropertyChanged;
 using YoutubeDownloader.Core.Downloading;
-using YoutubeExplode.Videos.Streams;
+using Container = YoutubeExplode.Videos.Streams.Container;
 
 namespace YoutubeDownloader.Services;
 
-public partial class SettingsService : SettingsManager
+[AddINotifyPropertyChangedInterface]
+public partial class SettingsService : SettingsBase, INotifyPropertyChanged
 {
     public bool IsUkraineSupportMessageEnabled { get; set; } = true;
 
     public bool IsAutoUpdateEnabled { get; set; } = true;
 
     public bool IsDarkModeEnabled { get; set; } = IsDarkModeEnabledByDefault();
+
+    public bool IsAuthPersisted { get; set; } = true;
 
     public bool ShouldInjectTags { get; set; } = true;
 
@@ -21,6 +31,12 @@ public partial class SettingsService : SettingsManager
 
     public int ParallelLimit { get; set; } = 2;
 
+    public Version? LastAppVersion { get; set; }
+
+    public IReadOnlyDictionary<string, string>? LastAuthCookies { get; set; }
+
+    // STJ cannot properly serialize immutable structs
+    [JsonConverter(typeof(ContainerJsonConverter))]
     public Container LastContainer { get; set; } = Container.Mp4;
 
     public VideoQualityPreference LastVideoQualityPreference { get; set; } = VideoQualityPreference.Highest;
@@ -28,10 +44,20 @@ public partial class SettingsService : SettingsManager
     public bool UseProxy { get;  set; }=false;
 
     public SettingsService()
+        : base(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Settings.dat"))
     {
-        Configuration.StorageSpace = StorageSpace.Instance;
-        Configuration.SubDirectoryPath = "";
-        Configuration.FileName = "Settings.dat";
+    }
+
+    public override void Save()
+    {
+        // Clear the cookies if they are not supposed to be persisted
+        var lastAuthCookies = LastAuthCookies;
+        if (!IsAuthPersisted)
+            LastAuthCookies = null;
+
+        base.Save();
+
+        LastAuthCookies = lastAuthCookies;
     }
 }
 
@@ -49,6 +75,42 @@ public partial class SettingsService
         catch
         {
             return false;
+        }
+    }
+}
+
+public partial class SettingsService
+{
+    private class ContainerJsonConverter : JsonConverter<Container>
+    {
+        public override Container Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+        {
+            Container? result = null;
+
+            if (reader.TokenType == JsonTokenType.StartObject)
+            {
+                while (reader.Read() && reader.TokenType != JsonTokenType.EndObject)
+                {
+                    if (reader.TokenType == JsonTokenType.PropertyName &&
+                        reader.GetString() == "Name" &&
+                        reader.Read() &&
+                        reader.TokenType == JsonTokenType.String)
+                    {
+                        var name = reader.GetString();
+                        if (!string.IsNullOrWhiteSpace(name))
+                            result = new Container(name);
+                    }
+                }
+            }
+
+            return result ?? throw new InvalidOperationException($"Invalid JSON for type '{typeToConvert.FullName}'.");
+        }
+
+        public override void Write(Utf8JsonWriter writer, Container value, JsonSerializerOptions options)
+        {
+            writer.WriteStartObject();
+            writer.WriteString("Name", value.Name);
+            writer.WriteEndObject();
         }
     }
 }

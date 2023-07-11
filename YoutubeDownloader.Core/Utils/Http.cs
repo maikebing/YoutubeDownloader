@@ -1,22 +1,26 @@
 ﻿using System.Net.Http;
 using System.Net.Http.Headers;
+using System.Reflection;
 
 namespace YoutubeDownloader.Core.Utils;
 
-internal static class Http
+public static class Http
 {
-    public static HttpClient Client { get; set; } = new()
-    {
-        DefaultRequestHeaders =
+    public static HttpClient Client { get; } = CreateClient();
+
+    public static HttpClient CreateClient(HttpMessageHandler? handler = null) =>
+        new(handler ?? new SocketsHttpHandler(), true)
         {
-            // Required by some of the services we're using
-            UserAgent =
+            DefaultRequestHeaders =
             {
-                new ProductInfoHeaderValue(
-                    "YoutubeDownloader",
-                    typeof(Http).Assembly.GetName().Version?.ToString(3)
-                )
+                // Required by some of the services we're using
+                UserAgent =
+                {
+                    new ProductInfoHeaderValue(
+                        "YoutubeDownloader",
+                        Assembly.GetExecutingAssembly().GetName().Version?.ToString(3)
+                    )
+                }
             }
-        }
-    };
+        };
 }

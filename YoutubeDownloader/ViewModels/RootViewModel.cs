@@ -51,7 +51,7 @@ public class RootViewModel : Screen
             Click LEARN MORE to find ways that you can help.
             """,
             "LEARN MORE",
-            "CANCEL"
+            "CLOSE"
         );
 
         // Disable this message in the future
@@ -59,10 +59,8 @@ public class RootViewModel : Screen
         _settingsService.Save();
 
         if (await _dialogManager.ShowDialogAsync(dialog) == true)
-        {
             ProcessEx.StartShellExecute("https://tyrrrz.me/ukraine?source=youtubedownloader");
         }
-    }
 
     private async Task CheckForUpdatesAsync()
     {
@@ -105,6 +103,7 @@ public class RootViewModel : Screen
 
         _settingsService.Load();
       
+        // Sync the theme with settings
         if (_settingsService.IsDarkModeEnabled)
         {
             App.SetDarkTheme();
@@ -113,6 +112,18 @@ public class RootViewModel : Screen
         {
             App.SetLightTheme();
         }
+
+        // App has just been updated, display the changelog
+        if (_settingsService.LastAppVersion is not null && _settingsService.LastAppVersion != App.Version)
+        {
+            Notifications.Enqueue(
+                $"Successfully updated to {App.Name} v{App.VersionString}",
+                "CHANGELOG", () => ProcessEx.StartShellExecute(App.ChangelogUrl)
+            );
+
+            _settingsService.LastAppVersion = App.Version;
+            _settingsService.Save();
+    }
     }
 
     protected override void OnClose()

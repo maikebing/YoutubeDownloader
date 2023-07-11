@@ -1,9 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Net.Http;
+using System.Runtime.CompilerServices;
 using System.Threading;
-using System.Threading.Tasks;
 using JsonExtensions.Http;
 using JsonExtensions.Reading;
 using YoutubeDownloader.Core.Utils;
@@ -21,11 +20,13 @@ internal class MusicBrainzClient
         client = Http.Client;
     }
     public async Task<IReadOnlyList<MusicBrainzRecording>> SearchRecordingsAsync(
+
+    public async IAsyncEnumerable<MusicBrainzRecording> SearchRecordingsAsync(
         string query,
-        CancellationToken cancellationToken = default)
+        [EnumeratorCancellation] CancellationToken cancellationToken = default)
     {
         var url =
-            "http://musicbrainz.org/ws/2/recording/" +
+            "https://musicbrainz.org/ws/2/recording/" +
             "?version=2" +
             "&fmt=json" +
             "&dismax=true" +
@@ -36,7 +37,6 @@ internal class MusicBrainzClient
         var json = await client.GetJsonAsync(url, cancellationToken);
 
         var recordingsJson = json.GetPropertyOrNull("recordings")?.EnumerateArrayOrNull() ?? default;
-        var recordings = new List<MusicBrainzRecording>();
 
         foreach (var recordingJson in recordingsJson)
         {
@@ -72,14 +72,12 @@ internal class MusicBrainzClient
                 .GetPropertyOrNull("title")?
                 .GetNonWhiteSpaceStringOrNull();
 
-            recordings.Add(new MusicBrainzRecording(
+            yield return new MusicBrainzRecording(
                 artist,
                 artistSort,
                 title,
                 album
-            ));
+            );
         }
-
-        return recordings;
     }
 }

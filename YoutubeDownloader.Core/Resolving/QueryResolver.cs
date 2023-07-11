@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using Gress;
@@ -15,19 +16,17 @@ namespace YoutubeDownloader.Core.Resolving;
 
 public class QueryResolver
 {
-    private  YoutubeClient _youtube = new YoutubeClient();
+    private readonly YoutubeClient _youtube;
 
-    public void Reset()
-    {
-        _youtube = new YoutubeClient(Http.Client);
-    }
+    public QueryResolver(HttpClient http) =>
+        _youtube = new YoutubeClient(http);
 
     public async Task<QueryResult> ResolveAsync(
         string query,
         CancellationToken cancellationToken = default)
     {
-        // Only consider URLs when parsing IDs.
-        // All other queries should be treated as search queries.
+        // Only consider URLs for parsing IDs.
+        // All other queries should be treated as search keywords.
         var isUrl = Uri.IsWellFormedUriString(query, UriKind.Absolute);
         // Playlist
         if (isUrl && PlaylistId.TryParse(query) is { } playlistId)
@@ -95,7 +94,6 @@ public class QueryResolver
         var videoIds = new HashSet<VideoId>();
 
         var completed = 0;
-
         foreach (var query in queries)
         {
             var result = await ResolveAsync(query, cancellationToken);
